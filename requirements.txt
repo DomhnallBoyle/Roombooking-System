@@ -1,0 +1,11 @@
+Flask
+flask-sqlalchemy
+flask-login
+flask-migrate
+Flask-WTF
+flask-bootstrap
+flask-datepicker
+flask-mail
+pandas
+requests
+apscheduler

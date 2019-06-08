@@ -1,0 +1,211 @@
+<!-- app/templates/home/admin_dashboard.html -->
+{% import "bootstrap/utils.html" as utils %}
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block body %}
+<div class="intro-header">
+    <br/>
+    {{ utils.flashed_messages() }}
+    <br/>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="intro-message">
+                    <h1>Admin Dashboard</h1>
+                    <hr class="intro-divider">
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</br>
+<div id="footer" style="text-align: center">
+
+    <h2>Select meter and date:</h2>
+    {{ datepicker.loader(theme="ui-lightness") }}
+    {{ datepicker.picker(id=".dp") }}
+    <select id="meter-picker-dropdown" name="meter-picker">
+        {% for i in range(1, 23) %}
+            <option value="{{ i }}">{{ i }}</option>
+        {% endfor %}
+    </select>
+    <input id="date-picker-input" name="date-picker" type="text" class="dp" style="color: black"/>
+    <button id="date-picker-button" type="submit">Go</button>
+
+    </br>
+    <div id="gauge-container" style="display: inline-block">
+        <h2 id="meter-reading-id"></h2>
+
+        <div id="usage-gauge" class="200x160px" style="float: left">
+            <h3>Energy Usage KWH</h3>
+        </div>
+
+
+        <div id="co2-gauge" class="200x160px" style="float: right">
+            <h3>Block CO2</h3>
+
+        </div>
+
+        <h3 id="meter-reading-cost"></h3>
+    </div>
+    </br>
+    <hr>
+
+    <h2>Most Popular Machines:</h2>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js'></script>
+    <canvas id="chart" width="600" height="400"></canvas>
+    <script>
+   // bar chart data
+   var barData = {
+   labels : [{% for login in logins %}
+                  "{{login[0]}}",
+              {% endfor %}],
+   datasets : [
+      {
+            fillColor: "rgba(220,220,220,0.5)",
+            strokeColor: "rgba(151,187,205,1)",
+            pointColor: "rgba(151,187,205,1)",
+         data : [{% for login in logins %}
+                      {{login[1]}},
+                    {% endfor %}]
+      }
+      ]
+   }
+
+   // get bar chart canvas
+   var mychart = document.getElementById("chart").getContext("2d");
+
+   steps = 10
+   max = 200
+   // draw bar chart
+   new Chart(mychart).Bar(barData, {
+        scaleOverride: true,
+        scaleSteps: steps,
+        scaleStepWidth: Math.ceil(max / steps),
+        scaleStartValue: 0,
+        scaleShowVerticalLines: true,
+        scaleShowGridLines : true,
+        barShowStroke : true,
+        scaleShowLabels: true
+   });
+
+</script>
+    <hr>
+
+    <h2/> Select timetable to visualise:</h2/>
+     <link href="{{ url_for('static', filename='css/timetablejs.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/timetable.js') }}"></script>
+
+      <select id="timetable-picker-dropdown" name="timetable-picker">
+        {% for i in range(1, 5) %}
+            <option value="{{ i }}">Stage {{ i }}</option>
+        {% endfor %}
+      </select>
+    <button id="timetable-picker-button" type="submit">Go</button>
+
+    <script>
+        $(document).ready(function(){
+
+            $("#gauge-container").hide();
+
+            $("#timetable-picker-button").click(function(){
+                $.ajax({
+                    type: 'POST',
+                    url: "/admin/timetable",
+                    contentType: "application/json",
+                    data: JSON.stringify({
+                        "year": $('#timetable-picker-dropdown').find(":selected").val()
+                    }),
+                    success: function(data){
+                        var timetable = new Timetable();
+                        timetable.setScope(9, 18);
+
+                        timetable.addLocations(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']);
+
+                        $.each(data['timetable'], function(k, v) {
+                            $.each(v, function(id, timeslot) {
+                                module_code = timeslot['module_code'];
+                                module_name = timeslot['module_name'];
+                                day = timeslot['day'];
+                                start_time = timeslot['start_time'];
+                                end_time = timeslot['end_time'];
+                                number_taking = timeslot['number_taking'];
+
+                                timetable.addEvent(module_code, day, new Date(start_time),new Date(end_time), {
+                                    onClick: function(event, timetable, clickEvent) {
+                                        alert(module_code + ' - ' + module_name + '.\nNumber taken: ' + number_taking);
+                                    }
+                                });
+                            });
+                        });
+
+                        var render = new Timetable.Renderer(timetable);
+
+                        render.draw('.timetable');
+                    },
+                    error: function() {
+                        location.reload();
+                    }
+                });
+            });
+
+            $("#date-picker-button").click(function(){
+                $("#usage-gauge").empty();
+                $("#co2-gauge").empty();
+
+                var date_string = $("#date-picker-input").val();
+                if (date_string != "") {
+                    $.ajax({
+                        type: 'POST',
+                        url: "/admin/efficiency",
+                        contentType: "application/json",
+                        data: JSON.stringify({
+                            "meter": $('#meter-picker-dropdown').find(":selected").text(),
+                            "date": $('#date-picker-input').val()
+                        }),
+                        success: function(data) {
+                            $("#gauge-container").show();
+
+                            var meter_reading = data['meter_reading']
+                            $("#meter-reading-id").text("Meter: " + 1);
+                            $("#meter-reading-cost").text("Block cost: £" + meter_reading['cost'].toFixed(2));
+
+                            $("#usage-gauge").append("<h3>Energy Usage KWH</h3>");
+                            $("#co2-gauge").append("<h3>CO2 cost</h3>");
+
+                            var g = new JustGage({
+                                id: "usage-gauge",
+                                value: meter_reading['usage'],
+                                min: 0,
+                                max: 3000,
+                                title: "Meter Usage KwH"
+                            });
+
+                            var g = new JustGage({
+                                id: "co2-gauge",
+                                value: meter_reading['co2'],
+                                min: 0,
+                                max: 1500,
+                                title: "Meter Block CO2"
+                            });
+
+                        },
+                        error: function() {
+                            location.reload();
+                        }
+                    });
+                }
+            });
+
+
+        });
+    </script>
+
+    <div class="timetable-wrapper" style="text-align: center">
+        <div class="timetable" style="margin: 0 auto; max-width: 1000px">
+
+        </div>
+    </div>
+</div>
+{% endblock %}

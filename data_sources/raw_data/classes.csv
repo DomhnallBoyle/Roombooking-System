@@ -1,0 +1,28 @@
+id,mod_code,name,number_taking
+1,CSC1020,Programming,350
+2,CSC1021,Fundamental of programming,300
+3,CSC1017,Reasoning for Problem Solving,350
+4,CSC1022,Architecture and Networks,290
+5,CSC2011,Professional Computing Practice,200
+6,CSC2040,Data Structures and Algorithms,120
+7,CSC2043,Software Development Processes and Practices BIT,150
+8,CSC2044,Software Development Processes and Practices,60
+9,CSC2045,Software Engineering,140
+10,CSC2046,Systems Administration and Maintenance,102
+11,CSC2047,Theory of Computation,140
+12,CSC2041,Information Management,110
+13,CSC2042,Information Modelling,100
+14,CSC3002,Computer science project,98
+15,CSC3023,BIT Project,67
+16,CSC3032,Software Engineer Project,89
+17,CSC3047,IT Enterprise Project ,110
+18,CSC3049,Aspects of Game Engine Development,34
+19,CSC3021,Concurrent Programming,89
+20,CSC3045,Agile Development,78
+21,CSC3052,.NET Web development,56
+22,CSC3058,Advanced Computer Architecture,67
+23,CSC3060,Artificial Intellignece and Data Analytics,66
+24,CSC3062,Data Analysis and Visualisation,78
+25,CSC4006,Research and Development Project,39
+26,CSC4008,Digital Transformations,35
+27,CSC4005,High Performance Computing,32

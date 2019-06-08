@@ -1,0 +1,28 @@
+<!-- app/templates/admin/employees/employee.html -->
+
+{% import "bootstrap/wtf.html" as wtf %}
+{% extends "base.html" %}
+{% block title %}Assign User{% endblock %}
+{% block body %}
+<div class="content-section">
+ <div class="outer">
+    <div class="middle">
+      <div class="inner">
+        <div class="center">
+            <h1> Assign Admin Privileges and Roles </h1>
+            <br/>
+            <p>
+                Select a department and role to assign to
+                <span style="color: #aec251;">
+                    {{ user.first_name }} {{ user.last_name }}
+                </span>
+            </p>
+            <br/>
+            {{ form.is_admin.label }}
+            {{ wtf.quick_form(form) }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

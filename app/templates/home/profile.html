@@ -1,0 +1,20 @@
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "bootstrap/utils.html" as utils %}
+{% extends "base.html" %}
+{% block title %}User Profile{% endblock %}
+{% block body %}
+<div class="content-section">
+  <br/>
+  {{ utils.flashed_messages() }}
+  <br/>
+
+  <div id="user_preferences">
+    <h1>{{ current_user.username }}'s Profile</h1>
+    {{ wtf.quick_form(form) }}
+  </div>
+  <br/>
+  <div id="view-bookings">
+    <a role="button" class="btn btn-success btn-lg btn-block" href="{{ url_for('home.user_bookings') }}">View  Bookings</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,366 @@
+<!-- app/templates/home/index.html -->
+
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block css %}
+    <link id="weather-css" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.10/css/weather-icons.min.css" rel="stylesheet">
+{% endblock %}
+{% block scripts %}
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js'></script>
+{% endblock %}
+{% block body %}
+<div class="intro-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="intro-message">
+                    <h1>EEECS - Room Booking</h1>
+                    <h3>A smarter room booking system</h3>
+                    <hr class="intro-divider">
+                    <p>
+                        <a class="btn btn-primary btn-lg" href="{{url_for('home.workspace_allocation')}}" role="button">Find Workspace &raquo;</a>
+                        <a class="btn btn-success btn-lg" href="{{ url_for('home.room_booking') }}" role="button">Book Room &raquo;</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container intro-body">
+    <div class="row text-center">
+            <div class="col-sm-4">
+                    <div class="intro-display" style="background: hsla({{ silent_load.h }}, {{ silent_load.s }}%, {{ silent_load.l }}%, {{ silent_load.a }})">
+                        <div class="inner">
+                            <p> {{ silent_load.load }} % </p>
+                        </div>
+                    </div>
+                    <h4>Silent Desks</h4>
+                </div>
+                <div class="col-sm-4">
+                    <div class="intro-display" style="background: hsla({{ noisy_load.h }}, {{ noisy_load.s }}%, {{ noisy_load.l }}%, {{ noisy_load.a }})">
+                        <div class="inner">
+                            <p> {{ noisy_load.load }} % </p>
+                        </div>
+                    </div>
+                    <h4>Collaborative Desks</h4>
+                </div>
+                <div class="col-sm-4">
+                    <div class="intro-display" style="background: hsla({{ group_load.h }}, {{ group_load.s }}%, {{ group_load.l }}%, {{ group_load.a }})">
+                        <div class="inner">
+                            <p> {{ group_load.load }} % </p>
+                        </div>
+                    </div>
+                    <h4>Group Rooms</h4>
+                </div>
+    </div>
+    <div class="row text-center">
+        <div class="=col-lg-12">
+            <h2>Building Occupancy</h2>
+        </div>
+    </div>
+
+
+
+
+
+
+</div>
+
+<div class="intro-data">
+<div class="container">
+    <div class="row text-center">
+        <div class="col-sm-6">
+            <div class="row" style="padding: 0em 2em">
+                <div class="row text-left">
+                    <div class="col-xs-2"></div>
+                    <div class="col-xs-6">
+                            {% if current_user.is_authenticated %}
+                            <h3>Hello {{ current_user.username }}!</h3>
+                            {% else %}
+                            <h3>Hello there!</h3>
+                            {% endif %}
+                            <p>&nbsp;</p>
+                    </div>
+                    <div class="col-xs-2">
+                        <h1>
+                            {% if weather.icon == "clear-day" %} <i class="wi wi-day-sunny"></i>
+                            {% elif weather.icon == "clear-night" %} <i class="wi wi-night-clear"></i>
+                            {% elif weather.icon == "rain" %} <i class="wi wi-rain"></i>
+                            {% elif weather.icon == "snow" %} <i class="wi wi-snow"></i>
+                            {% elif weather.icon == "sleet" %} <i class="wi wi-sleet"></i>
+                            {% elif weather.icon == "wind" %} <i class="wi wi-windy"></i>
+                            {% elif weather.icon == "fog" %} <i class="wi wi-fog"></i>
+                            {% elif weather.icon == "cloudy" %} <i class="wi wi-cloudy"></i>
+                            {% elif weather.icon == "partly-cloudy-day" %} <i class="wi wi-day-cloudy"></i>
+                            {% elif weather.icon == "partly-cloudy-night" %} <i class="wi wi-night-partly-cloudy"></i>
+                            {% endif %}
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-xs-2"></div>
+
+                <div class="col-xs-11">
+                    <h4>Temperature is {{weather.temp}}°C with a {{weather.rain}}% chance of rain.</h4>
+                    <h4>{{ weather.summary }}</h4>
+                    <h4>It should take you 5 minutes to get to the CSB.</h4>
+                </div>
+                <div class="col-xs-1">
+
+                </div>
+
+            </div>
+
+
+
+        </div>
+
+
+        <div class="col-sm-6">
+                {% if chart %}
+                    <canvas id="intro-chart"></canvas>
+                    <h5>Average CSB Occupancy on a {{ chart.day }}</h5>
+                    <script>
+                      // Global parameters:
+                      // do not resize the chart canvas when its container does (keep at 600x400px)
+                      Chart.defaults.global.responsive = false;
+
+                      var timeFormat = 'H A';
+
+                      function newDateString(hours, minutes) {
+                        return moment().hour(hours).minute(minutes).format(timeFormat);
+                      }
+
+                      // define the chart data
+                      var chartData = {
+                        labels : [{% for item in chart.x %}
+                                   newDateString( {{item.hour}}, {{item.minute}} ),
+                                  {% endfor %}],
+                        datasets :[
+                            {% if chart.dot != -1 %}
+                            {
+                            data: [ {
+                                x: moment().format(timeFormat),
+                                y: {{ chart.dot }},
+                                r: 5
+                            } ],
+                            label: '{{ chart.legend }}',
+                            // steppedLine: true,
+                            backgroundColor: "#cd2026",
+                            type: 'bubble'
+                            },
+                            {% endif %}
+                            {
+                            label: '{{ chart.legend }}',
+                            fill: true,
+                            lineTension: 0.4,
+                            backgroundColor: "rgba(51,122,183,0.4)",
+                            borderColor: "rgba(51,122,183,1)",
+                            borderCapStyle: 'butt',
+                            borderDash: [],
+                            borderDashOffset: 0.0,
+                            borderJoinStyle: 'miter',
+                            pointBorderColor: "rgba(51,122,183,1)",
+                            pointBackgroundColor: "#fff",
+                            pointBorderWidth: 1,
+                            pointHoverRadius: 5,
+                            pointHoverBackgroundColor: "rgba(51,122,183,1)",
+                            pointHoverBorderColor: "rgba(220,220,220,1)",
+                            pointHoverBorderWidth: 2,
+                            pointRadius: 1,
+                            pointHitRadius: 10,
+                            data : [{% for item in chart.y %}
+                                      {{item}},
+                                    {% endfor %}],
+                            spanGaps: false
+                        }]
+
+                      }
+
+                      // get chart canvas
+                      var holder = document.getElementById("intro-chart");
+                      var ctx = document.getElementById("intro-chart").getContext("2d");
+
+
+
+                      // create the chart using the chart canvas
+                      var myChart = new Chart(ctx, {
+                          type: 'line',
+                          data: chartData,
+                          options: {
+                            hover: {mode: null},
+                            scales: {
+                              yAxes: [{
+                                ticks: {
+                                  min: 0,
+                                  max: {{ chart.max_y }},
+                                  callback: function (value) {
+                                    return value
+                                  }
+                                },
+                                scaleLabel: {
+                                  display: true,
+                                  labelString: "Occupancy"
+                                }
+                              }]
+                            },
+                            legend: {
+                              display: false
+                            },
+                            tooltips: {
+                              // There is a problem with tooltips/hovers as
+                              // red point axis is 0-dimensional, and normal
+                              // axis is 1-dimensional - I failed at assigning
+                              // different axis, so deactivated hover/tooltips
+                              enabled: false,
+                              mode: 'single',
+                            },
+                          }
+                        });
+
+                    </script>
+                {% else %}
+                    Lab is closed today.
+                {% endif %}
+        </div>
+    </div>
+</div>
+</div>
+
+{% if timetable %}
+<h2 style="text-align: center">Your timetable:</h2>
+<div class="timetable-wrapper" style="text-align: center">
+    <div class="timetable" style="margin: 0 auto; max-width: 1000px">
+        <script>
+        var timetable = new Timetable();
+        timetable.setScope(9,18);
+
+        timetable.addLocations(['Monday','Tuesday','Wednesday','Thursday','Friday']);
+
+        {% for timeslot in timetable.timeslots %}
+            timetable.addEvent('{{timeslot.module_code}}','{{timeslot.day}}', new Date({{timeslot.start_time | date_to_millis}}),new Date({{timeslot.end_time | date_to_millis}}), {
+                onClick: function(event, timetable, clickEvent) {
+                    alert('{{ timeslot.class_.mod_code }} - {{ timeslot.class_.mod_name }}. \nNumber taken: {{ timeslot.class_.number_taking }}');
+                }
+            });
+        {% endfor %}
+
+        var render = new Timetable.Renderer(timetable);
+
+        render.draw('.timetable');
+    </script>
+    </div>
+</div>
+{% endif %}
+
+<div  class="row text-center">
+    {% if current_user.is_authenticated %}
+    <h2> Select your floor to view floor plan</h2>
+    <select id="floor-picker-dropdown" name="floor-picker">
+        <option value="G">G</option>
+        {% for i in range(1, 4) %}
+            <option value="{{ i }}">{{ i }}</option>
+        {% endfor %}
+    </select>
+    <button id="floor-picker-button" type="submit">Go</button>
+
+    <div id="image-wrapper" style="width: 1100px" data-captions='{"coords": [{"top":180,"left":180,"text":"iMac 1"},{"top":250,"left":300,"text":"iMac 2"}]}'>
+        <img id="floor-plan-image" alt=""/>
+    </div>
+
+    <script>
+        $("#image-wrapper").hide();
+
+        function show_floor_plan() {
+            console.log("In function");
+        }
+
+        $("#floor-picker-button").click(function(){
+            $(".marker").remove();
+
+            $.ajax({
+                type: 'POST',
+                url: "/floor_plan",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    "floor-number": $('#floor-picker-dropdown').find(":selected").text()
+                }),
+                success: function(data) {
+                    var rooms = data['rooms'];
+                    var Markers = {
+                        fn: {
+                            addMarkers: function() {
+                                var target = $('#image-wrapper');
+                                var data = target.attr('data-captions');
+                                var captions = $.parseJSON(data);
+                                var coords = [];
+
+                                $.each(rooms, function(k, v) {
+                                    left = v['coord_left'];
+                                    top = v['coord_top'];
+                                    text = v['name'];
+
+                                    coords.push({
+                                        "top": top,
+                                        "left": left,
+                                        "text": text
+                                    });
+                                });
+
+                                for (var i = 0; i < coords.length; i++) {
+                                    var obj = coords[i];
+                                    var top = obj.top;
+                                    var left = obj.left;
+                                    var text = obj.text;
+
+                                    $('<span class="marker"/>').css({
+                                        top: top,
+                                        left: left
+                                    }).html('<span class="caption">' + text + '</span>').
+                                    appendTo(target);
+                                }
+                            },
+                            showCaptions: function() {
+                                $('span.marker').click( function() {
+                                    $('.caption').slideUp(300);
+                                    var $marker = $(this),
+                                        $caption = $('span.caption', $marker);
+                                    if ($caption.is(':hidden')) {
+                                        $caption.slideDown(300);
+
+                                    } else {
+                                        $caption.slideUp(300);
+
+                                    }
+
+                                });
+
+                            }
+                        },
+
+                        init: function() {
+                            this.fn.addMarkers();
+                            this.fn.showCaptions();
+
+                            $("#floor-plan-image").attr("src", "static/img/" + data['image_path']);
+
+                            $("#image-wrapper").show();
+                        }
+                    };
+
+                    Markers.init();
+                },
+                error: function() {
+                    location.reload();
+                }
+            });
+        });
+
+    </script>
+    {% endif %}
+</div>
+
+
+</div>
+{% endblock %}

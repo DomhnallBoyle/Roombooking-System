@@ -1,0 +1,31 @@
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "bootstrap/utils.html" as utils %}
+{% extends "base.html" %}
+{% block title %}Booking Setup{% endblock %}
+{% block body %}
+<div class="content-section">
+  <br/>
+  {{ utils.flashed_messages() }}
+  <br/>
+
+  <div id="user_preferences">
+    <h1>Confirm Booking?</h1>
+    <p>
+    <i>Booking:</i><br/>
+    Date = {{ details['booking']['datetime'].strftime('%d/%m/%Y') }}<br/>
+    Start time = {{ details['slots'][0] }}:00<br/>
+    End time = {{ details['slots'][0] + details['booking']['duration'] }}:00<br/>    
+    <br/>
+    Room = {{ details['booking']['room_name'] }}<br/>
+    Max Occupancy = {{ details['booking']['occupancy'] }}<br/>
+    Is Quiet = {{ details['booking']['is_quiet'] }}<br/>
+    Has Computer = {{ details['booking']['has_computer'] }}<br/>
+    Has Window = {{details['booking']['has_window']}}<br/>
+    Has HDMI = {{details['booking']['has_hdmi']}}<br/>
+    <br/>
+    </p>
+    {{ wtf.quick_form(form) }}
+  </div>
+</div>
+
+{% endblock %}

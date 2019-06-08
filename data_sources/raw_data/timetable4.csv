@@ -1,0 +1,7 @@
+id,day,start_time,end_time,module_code
+1,Monday,10:00,13:00,CSC4005
+2,Monday,15:00,17:00,CSC4005
+3,Tuesday,9:00,10:00,CSC4008
+4,Tuesday,12:00,13:00,CSC4006
+5,Tuesday,13:00,14:00,CSC4008
+6,Wednesday,10:00,11:00,CSC4008

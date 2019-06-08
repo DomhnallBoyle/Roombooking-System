@@ -1,0 +1,119 @@
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "bootstrap/utils.html" as utils %}
+{% extends "base.html" %}
+{% block title %}Booking List{% endblock %}
+{% block body %}
+<div class="content-section">
+  <br/>
+  {{ utils.flashed_messages() }}
+  <br/>
+
+  <div id="user_preferences">
+    <h1>Current Workspace</h1>
+    <div class="panel-group">
+    {% if workspaces %}
+        <div class="panel panel-primary">
+            <div class="panel-heading"><h3>Allocated space in: {{workspaces[0].space}}</h3></div>
+            <div class="panel-body">
+                Checked in = {{workspaces[0].checked_in}}<br/><br/> 
+                <a role="button" class="btn btn-success" href="{{url_for('home.checkin_workspace', wid=workspaces[0].id)}}">Check in</a>
+            </div>
+        </div>
+    {% else %}
+        <br/>
+        There's nothing to show...
+    {% endif %}
+    <br/>
+    <h1>Your Bookings</h1>
+    <div class="panel-group">
+    {% if bookings %}
+    {% for b in bookings %}
+        <div class="panel panel-default">
+            <div class="panel-heading"><h3>Room: [{{b.room_name}}] &nbsp;&nbsp;&nbsp;{{b.datetime.strftime('%d/%m/%Y')}} &nbsp;&nbsp;@&nbsp;&nbsp; {{b.datetime.strftime('%H:00')}}</h3></div>
+            <div class="panel-body">
+                Duration = {{b.duration}} hour(s)<br/>
+                Occupancy = {{b.occupancy}}<br/>
+                Is Quiet = {{b.is_quiet}}<br/>
+                Has Computer = {{b.has_pc}}<br/>
+                Has Window = {{b.has_window}}<br/>
+                Has HDMI = {{b.has_hdmi}}<br/>
+                <br/>
+                Checked in = {{b.checked_in}}<br/><br/>
+                <a role="button" class="btn btn-success" href="{{url_for('home.view_booking', ref=b.slot_group_ref, booking_id=b.id)}}">View</a>
+                <button type="button" class="btn btn-primary notify-others" data-target="#loginmodal" data-toggle="modal" data-booking-id="{{ b.id }}" data-slot-ref="{{ b.slot_group_ref }}">Notify Others Of This Booking</button>
+            </div>
+        </div>
+    {% endfor %}
+    {% else %}
+        <br/>
+        There's nothing to show...
+    {% endif %}
+    </div>
+
+  </div>
+
+    <div class="continer">
+        <div class="row">
+            <div class="col-md-2">
+                <div class="modal" id="emailmodal" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-body">
+                                <form>
+                                    <div class="form-group">
+                                        <label for="Username">Recipients:</label>
+                                        <input name="email-input" id="email-input" type="text" name="text" placeholder="Multiple users e.g. example1@email.com, example2@email.com" class="form-control">
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button id="send-email-button" class="btn btn-success" data-dismiss="modal">Send</button>
+                                <button id="close-modal" class="btn btn-danger" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var bookingId = null;
+        var slotRef = null;
+
+        $('.notify-others').click(function() {
+            $('#emailmodal').show();
+            bookingId = $(this).data('booking-id');
+            slotRef = $(this).data('slot-ref');
+        });
+
+        $('#close-modal').click(function() {
+            $('#email-input').val("");
+            $('#emailmodal').hide();
+        });
+
+        $('#send-email-button').click(function() {
+            var emailAddresses = $('#email-input').val();
+
+            if (emailAddresses != "") {
+                $.ajax({
+                    type: 'POST',
+                    url: "/booking/" + slotRef + "/notify",
+                    contentType: "application/json",
+                    data: JSON.stringify({
+                        "emails": emailAddresses
+                    }),
+                    success: function(data){
+                        alert("Email notifications sent successfully");
+                    },
+                    error: function() {
+                        alert("Booking not found.");
+                    }
+                });
+                $('#emailmodal').hide();
+            }
+        });
+    </script>
+
+</div>
+{% endblock %}
